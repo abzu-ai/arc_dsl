@@ -1,0 +1,16 @@
+%import common.WS
+%ignore WS
+
+COMMENT: ";;" /[^\n]*/
+%ignore COMMENT
+
+
+INT.1: ("0".."9")+
+SYMBOL: ("a".."z" | "A".."Z" | "0".."9" | "-" | "+" | "*" | "<" | "=" | "!" | "/" | "%")+
+
+?atom: INT | SYMBOL
+?form: atom | list | quote
+list: "(" form* ")"
+quote: "'" form
+
+program: form*

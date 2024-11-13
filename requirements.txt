@@ -1,0 +1,9 @@
+lark
+tqdm
+numpy
+matplotlib
+humanize
+jupyter
+pytest
+pytest-watch
+tensorflow[and-cuda]
