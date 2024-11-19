@@ -3,7 +3,7 @@ from dataclasses import replace
 from math import prod
 from pathlib import Path
 
-from lark import Lark, Transformer
+from lark import Lark, Token, Transformer
 
 from .bitmap import Bitmap
 from .errors import ParseError, EvalError
@@ -90,6 +90,25 @@ def form_to_sentence(form) -> DSL:
         return f"({inner})"
     else:
         raise ValueError(f"Cannot convert {type(form)} to sentence")
+
+
+def canonicalize(sentence: str, preserve_these: list[str] = None) -> str:
+    if preserve_these is None:
+        preserve_these = []
+
+    def handler(e) -> bool:
+        if e.char in preserve_these:
+            e.interactive_parser.feed_token(Token("SYMBOL", e.char))
+            return True  # Continue
+
+        return False  # Re-raise
+
+    try:
+        prog = PARSER.parse(sentence, on_error=handler)
+    except:
+        raise ParseError()
+
+    return program_to_sentence(prog)
 
 
 def parse_sentence(s: DSL):

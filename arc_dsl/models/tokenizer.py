@@ -1,7 +1,7 @@
 import json
 import re
 
-from ..interpreter import DSL, DEFAULT_ENV, parse_sentence, form_to_sentence
+from ..interpreter import DSL, DEFAULT_ENV, canonicalize
 
 
 PAD_TOKEN = "<PAD>"
@@ -80,7 +80,7 @@ class GridlispTokenizer:
     def __len__(self) -> int:
         return len(self.id_to_token)
 
-    def encode(self, sentence: DSL) -> list[int]:
+    def encode(self, sentence: str) -> list[int]:
         sentence = self.make_tokenizable(sentence)
         token_ids = []
 
@@ -98,18 +98,22 @@ class GridlispTokenizer:
 
         return token_ids
 
-    def decode(self, encoding: list[int]) -> DSL:
+    def decode(self, encoding: list[int]) -> str:
         try:
             return "".join(self.id_to_token[id] for id in encoding)
         except KeyError as e:
             raise ValueError(f"Unknown token ID: {e.args[0]}")
 
-    def make_tokenizable(self, sentence: DSL) -> DSL:
-        prog = parse_sentence(sentence)
-        sentence = " ".join(form_to_sentence(f) for f in prog)
+    def make_tokenizable(self, sentence: str) -> str:
+        sentence = canonicalize(
+            sentence, preserve_these=[PARAM_TOKEN, MANY_PARAM_TOKEN]
+        )
+        sentence = sentence.replace("\n", " ")
         sentence = self.lparen_pattern.sub(" ( ", sentence)
+
         if not sentence.startswith(" "):
             sentence = " " + sentence
+
         return sentence
 
     def save(self, filepath: str):
